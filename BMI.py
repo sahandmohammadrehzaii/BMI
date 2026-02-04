@@ -1,37 +1,92 @@
 from tkinter import *
 from tkinter import messagebox
+import sys
 
+# Debug mode flag
+DEBUG = False
+
+def debug_print(message):
+    """Print debug messages if DEBUG mode is enabled"""
+    if DEBUG:
+        print(f"[DEBUG] {message}")
 
 def reset():
+    """Clear height and weight input fields"""
+    debug_print("Resetting input fields")
     height.delete(0, 'end')
     weight.delete(0, 'end')
 
 
 def bmi_cal():
-    kg = int(weight.get())
-    m = int(height.get()) / 100
-    bmi = kg / m ** 2
-    bmi = round(bmi, 1)
-    bmi_index_over18(bmi)
+    """Calculate BMI from height and weight inputs"""
+    try:
+        debug_print(f"Height input: {height.get()}")
+        debug_print(f"Weight input: {weight.get()}")
+        
+        kg = float(weight.get())  # Changed to float for decimal support
+        cm = float(height.get())  # Changed to float for decimal support
+        
+        if kg <= 0 or cm <= 0:
+            messagebox.showerror('Error', 'Height and weight must be positive numbers!')
+            debug_print("Error: Negative or zero values entered")
+            return
+        
+        m = cm / 100
+        bmi = kg / (m ** 2)
+        bmi = round(bmi, 1)
+        
+        debug_print(f"Calculated BMI: {bmi}")
+        bmi_index_over18(bmi)
+    except ValueError:
+        messagebox.showerror('Error', 'Please enter valid numbers!')
+        debug_print("Error: Invalid input format")
+    except Exception as e:
+        messagebox.showerror('Error', f'An error occurred: {str(e)}')
+        debug_print(f"Error: {str(e)}")
 
 
 def bmi_index_over18(bmi):
+    """Categorize BMI and display result"""
+    debug_print(f"Categorizing BMI: {bmi}")
+    
     if bmi < 18.5:
         messagebox.showinfo('BMI', f'BMI = {bmi} is Underweight')
-    elif (bmi > 18.5) and (bmi < 24.9):
+    elif bmi <= 24.9:  # Fixed: was (bmi > 18.5) and (bmi < 24.9)
         messagebox.showinfo('BMI', f'BMI = {bmi} is Normal')
-    elif (bmi > 24.9) and (bmi < 29.9):
+    elif bmi <= 29.9:  # Fixed: was (bmi > 24.9) and (bmi < 29.9)
         messagebox.showinfo('BMI', f'BMI = {bmi} is Overweight')
-    elif bmi > 29.9:
+    else:  # bmi > 29.9
         messagebox.showinfo('BMI', f'BMI = {bmi} is Obesity')
-    else:
-        messagebox.showerror('BMI', 'something went wrong!')
 
 def info():
-    messagebox.showinfo('Info', 'v1, you can calculate your bmi.')
+    """Display application information"""
+    info_text = '''BMI Calculator v1.1
 
-root = Tk()
-root.title("طراحی شده توسط طاها دژبانی")
+You can calculate your Body Mass Index (BMI).
+
+BMI Categories:
+• < 18.5: Underweight
+• 18.5 - 24.9: Normal
+• 25.0 - 29.9: Overweight
+• ≥ 30.0: Obesity
+
+Designed by: طاها دژبانی'''
+    messagebox.showinfo('Info', info_text)
+    debug_print("Info dialog displayed")
+
+# Check for debug mode from command line arguments
+if '--debug' in sys.argv:
+    DEBUG = True
+    print("Debug mode enabled")
+
+try:
+    root = Tk()
+    root.title("طراحی شده توسط طاها دژبانی")
+    debug_print("Application window created")
+except Exception as e:
+    print(f"Error: Unable to initialize tkinter. Make sure tkinter is installed.")
+    print(f"Details: {str(e)}")
+    sys.exit(1)
 
 var = IntVar()
 
@@ -67,4 +122,13 @@ reset_b.pack(side=RIGHT)
 info_b = Button(frame3, text="اطلاعات", command=info)
 info_b.pack(side=RIGHT)
 
-root.mainloop()
+debug_print("Starting main loop")
+try:
+    root.mainloop()
+except KeyboardInterrupt:
+    debug_print("Application interrupted by user")
+    print("\nApplication closed.")
+except Exception as e:
+    print(f"Error during execution: {str(e)}")
+    debug_print(f"Fatal error: {str(e)}")
+    sys.exit(1)
